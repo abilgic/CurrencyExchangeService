@@ -23,19 +23,20 @@ namespace CurrencyExchangeService.Controllers
 
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
-        { var currency1 = "USD";
+        {
+            var currency1 = "USD";
             var currency2 = "EUR";
             var amount = 10;
             string requestUrl = $"https://api.apilayer.com/exchangerates_data/convert?apikey=m0PfB2FUoQw6jqOOOQrvvrKEqzvGWF0R&to={currency2}&from={currency1}&amount={amount}";
             //var requestUrl = "https://api.apilayer.com/exchangerates_data/convert?to=USD&from=EUR&amount=10";
-            
+
             //var requestUrl = "https://api.apilayer.com/fixer/convert?to=USD&from=EUR&amount=100&2022-02-22";
             // var requestUrl = "https://api.apilayer.com/exchangerates_data/symbols";
             //var requestUrl = "https://api.apilayer.com/fixer/convert?to=USD&from=EUR&amount=100&2022-02-22";
             //var requestUrl = "https://api.apilayer.com/exchangerates_data/symbols";
             UriBuilder builder = new UriBuilder(requestUrl);
             //builder.Query = "apikey=iZxJYD0qS1fvhajwJGl2XDFtVHuZYPZm";
-           
+
             var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
             //var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = new Uri(requestUrl)  };
 
