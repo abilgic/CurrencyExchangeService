@@ -1,6 +1,9 @@
 ﻿using CurrencyExchangeService.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using Swashbuckle.AspNetCore.Annotations;
+using System.Net;
 
 namespace CurrencyExchangeService.Controllers
 {
@@ -14,25 +17,74 @@ namespace CurrencyExchangeService.Controllers
             _config = config;
         }
 
-        [HttpGet(Name = "Convert")]
-        public int GetConversion(int c1)
-        {
-            var currency1 = "USD";
-            var currency2 = "EUR";
-            var amount = 10;
-            // string requestUrl = $"https://api.apilayer.com/exchangerates_data/convert?apikey=m0PfB2FUoQw6jqOOOQrvvrKEqzvGWF0R&to={currency2}&from={currency1}&amount={amount}";
-            string requestUrl = $"{Constants.BaseUrl}convert";//?apikey=m0PfB2FUoQw6jqOOOQrvvrKEqzvGWF0R&to={currency2}&from={currency1}&amount={amount}";
+        [HttpGet("GetConversion")]
+        public double GetConversion( string currency1, string currency2, double amount)
+        {           
+           
+            string requestUrl = $"{Constants.BaseUrl}convert";
             UriBuilder builder = new UriBuilder(requestUrl);
             builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}&to={currency2}&from={currency1}&amount={amount}";// m0PfB2FUoQw6jqOOOQrvvrKEqzvGWF0R";
+
             var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
             HttpClient _httpClient = new HttpClient();
-            var result = _httpClient.Send(httpRequestMessage);
-            using (StreamReader sr = new StreamReader(result.Content.ReadAsStreamAsync().Result))
+            var response = _httpClient.Send(httpRequestMessage);
+            var resultstr = response.Content.ReadAsStringAsync().Result;
+            var resultobject = JsonConvert.DeserializeObject<ConvertResponse>(resultstr);
+
+            double resultvalue = 0;
+            if (resultobject != null)
             {
-                Console.WriteLine(sr.ReadToEnd());
+                resultvalue = resultobject.result;
             }
 
-            return 0;
+            return resultvalue;
         }
+        [HttpGet("GetLatest")]
+        public Rates GetLatest([FromQuery] string symbols, string basevalue)
+       { 
+            string requestUrl = $"{Constants.BaseUrl}latest";
+            UriBuilder builder = new UriBuilder(requestUrl);
+            builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}&symbols={symbols}&base={basevalue}";
+
+            var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
+            HttpClient _httpClient = new HttpClient();
+            var response = _httpClient.Send(httpRequestMessage);
+            var resultstr = response.Content.ReadAsStringAsync().Result;
+            var resultobject = JsonConvert.DeserializeObject<LatestResponse>(resultstr);
+            
+            Rates resultvalue = new Rates();
+            if (resultobject != null)
+            {
+                resultvalue = resultobject.rates;
+            }
+
+            return resultvalue;
+        }
+
+        [HttpGet("GetSymbols")]
+        public Symbols GetSymbols()
+        {            
+            string requestUrl = $"{Constants.BaseUrl}symbols";
+            UriBuilder builder = new UriBuilder(requestUrl);
+            builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}";
+
+            var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
+            HttpClient _httpClient = new HttpClient();
+            var response = _httpClient.Send(httpRequestMessage);
+            var resultstr = response.Content.ReadAsStringAsync().Result;
+            var resultobject = JsonConvert.DeserializeObject<SymbolResponse>(resultstr);
+            
+           var resultvalue = new Symbols();
+            if (resultobject != null)
+            {
+                resultvalue =  resultobject.symbols;
+            }
+
+            return resultvalue ?? new Symbols();
+        }
+
     }
+
 }
+
+
