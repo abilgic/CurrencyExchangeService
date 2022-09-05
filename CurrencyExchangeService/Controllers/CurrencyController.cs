@@ -1,6 +1,7 @@
 ﻿using CurrencyExchangeService.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using System.Net;
@@ -11,10 +12,12 @@ namespace CurrencyExchangeService.Controllers
     [ApiController]
     public class CurrencyController : ControllerBase
     {
+        private readonly IMemoryCache _memoryCache;
         private readonly IConfiguration _config;
         private readonly ILogger<CurrencyController> _logger;
-        public CurrencyController(IConfiguration config, ILogger<CurrencyController> logger)
+        public CurrencyController(IConfiguration config, ILogger<CurrencyController> logger, IMemoryCache memoryCache)
         {
+            _memoryCache = memoryCache;
             _config = config;
             _logger = logger;
         }
@@ -88,6 +91,46 @@ namespace CurrencyExchangeService.Controllers
             _logger.LogInformation("GetSymbols execution finished...");
 
             return resultvalue ?? new Symbols();
+        }
+
+        [HttpGet("GetSymbolList")]
+        public Symbols GetSymbolList()
+        {
+            
+            var cacheKey = "symbolList";
+            //checks if cache entries exists
+            if (!_memoryCache.TryGetValue(cacheKey, out Symbols symbolList))
+            {   //calling the server
+                //******************************************************
+                //var employeeList = new Symbols();
+                string requestUrl = $"{Constants.BaseUrl}symbols";
+                UriBuilder builder = new UriBuilder(requestUrl);
+                builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}";
+
+                var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
+                HttpClient _httpClient = new HttpClient();
+                var response = _httpClient.Send(httpRequestMessage);
+                var resultstr = response.Content.ReadAsStringAsync().Result;
+                var resultobject = JsonConvert.DeserializeObject<SymbolResponse>(resultstr);
+
+               
+                if (resultobject != null)
+                {
+                    symbolList = resultobject.symbols;
+                }
+                //****************************************************
+
+                //setting up cache options
+                var cacheExpiryOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = DateTime.Now.AddSeconds(50),
+                    Priority = CacheItemPriority.High,
+                    SlidingExpiration = TimeSpan.FromSeconds(20)
+                };
+                //setting cache entries
+                _memoryCache.Set(cacheKey, symbolList, cacheExpiryOptions);
+            }
+            return symbolList;
         }
 
     }
