@@ -12,15 +12,17 @@ namespace CurrencyExchangeService.Controllers
     public class CurrencyController : ControllerBase
     {
         private readonly IConfiguration _config;
-        public CurrencyController(IConfiguration config)
+        private readonly ILogger<CurrencyController> _logger;
+        public CurrencyController(IConfiguration config, ILogger<CurrencyController> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         [HttpGet("GetConversion")]
         public double GetConversion( string currency1, string currency2, double amount)
-        {           
-           
+        {
+            _logger.LogInformation("GetConversion execution started...");
             string requestUrl = $"{Constants.BaseUrl}convert";
             UriBuilder builder = new UriBuilder(requestUrl);
             builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}&to={currency2}&from={currency1}&amount={amount}";// m0PfB2FUoQw6jqOOOQrvvrKEqzvGWF0R";
@@ -36,12 +38,14 @@ namespace CurrencyExchangeService.Controllers
             {
                 resultvalue = resultobject.result;
             }
-
+            _logger.LogInformation("GetConversion execution finished...");
             return resultvalue;
         }
+
         [HttpGet("GetLatest")]
         public Rates GetLatest([FromQuery] string symbols, string basevalue)
-       { 
+       {
+            _logger.LogInformation("GetLatest execution started...");
             string requestUrl = $"{Constants.BaseUrl}latest";
             UriBuilder builder = new UriBuilder(requestUrl);
             builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}&symbols={symbols}&base={basevalue}";
@@ -57,13 +61,15 @@ namespace CurrencyExchangeService.Controllers
             {
                 resultvalue = resultobject.rates;
             }
+            _logger.LogInformation("GetLatest execution finished...");
 
             return resultvalue;
         }
 
         [HttpGet("GetSymbols")]
         public Symbols GetSymbols()
-        {            
+        {
+            _logger.LogInformation("GetSymbols execution started...");
             string requestUrl = $"{Constants.BaseUrl}symbols";
             UriBuilder builder = new UriBuilder(requestUrl);
             builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}";
@@ -79,6 +85,7 @@ namespace CurrencyExchangeService.Controllers
             {
                 resultvalue =  resultobject.symbols;
             }
+            _logger.LogInformation("GetSymbols execution finished...");
 
             return resultvalue ?? new Symbols();
         }
