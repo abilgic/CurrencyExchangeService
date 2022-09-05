@@ -96,7 +96,7 @@ namespace CurrencyExchangeService.Controllers
         [HttpGet("GetSymbolList")]
         public Symbols GetSymbolList()
         {
-            
+            _logger.LogInformation("GetSymbols execution started...");
             var cacheKey = "symbolList";
             //checks if cache entries exists
             if (!_memoryCache.TryGetValue(cacheKey, out Symbols symbolList))
@@ -130,6 +130,7 @@ namespace CurrencyExchangeService.Controllers
                 //setting cache entries
                 _memoryCache.Set(cacheKey, symbolList, cacheExpiryOptions);
             }
+            _logger.LogInformation("GetSymbols execution finished...");
             return symbolList;
         }
 
