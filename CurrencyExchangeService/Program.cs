@@ -1,3 +1,4 @@
+using CurrencyExchangeService.Controllers;
 using Data.Models;
 using Data.Repository;
 using Microsoft.EntityFrameworkCore;
@@ -36,3 +37,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+
+
+public partial class Program { }

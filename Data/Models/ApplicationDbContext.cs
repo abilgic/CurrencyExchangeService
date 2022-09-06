@@ -9,6 +9,7 @@ namespace Data.Models
 {
     public class ApplicationDbContext :DbContext
     {
+        public DbSet<ConversionLog> ConversionLog { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options): base(options)
         {
         }

@@ -1,4 +1,5 @@
 ﻿using CurrencyExchangeService.Models;
+using Data.Repository;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
@@ -12,11 +13,13 @@ namespace CurrencyExchangeService.Controllers
     [ApiController]
     public class CurrencyController : ControllerBase
     {
+        private readonly ICurrencyService _currencyService;
         private readonly IMemoryCache _memoryCache;
         private readonly IConfiguration _config;
         private readonly ILogger<CurrencyController> _logger;
-        public CurrencyController(IConfiguration config, ILogger<CurrencyController> logger, IMemoryCache memoryCache)
+        public CurrencyController(ICurrencyService currencyService, IConfiguration config, ILogger<CurrencyController> logger, IMemoryCache memoryCache)
         {
+            _currencyService = currencyService;
             _memoryCache = memoryCache;
             _config = config;
             _logger = logger;
@@ -35,11 +38,22 @@ namespace CurrencyExchangeService.Controllers
             var response = _httpClient.Send(httpRequestMessage);
             var resultstr = response.Content.ReadAsStringAsync().Result;
             var resultobject = JsonConvert.DeserializeObject<ConvertResponse>(resultstr);
-
+            
             double resultvalue = 0;
             if (resultobject != null)
             {
                 resultvalue = resultobject.result;
+                var model = new Data.Models.ConversionLog()
+                {
+                    Createdate = DateTime.Now,
+                    Currency1 = currency1,
+                    Currency2 = currency2,
+                    Result = resultvalue,
+                    Amount = amount
+                };
+                var saveresult = _currencyService.Add(model).Result;
+                var logresult = saveresult > 0 ? "Inserted to table" : "Not Inserted table";
+                _logger.LogInformation($"GetConversion {logresult}");
             }
             _logger.LogInformation("GetConversion execution finished...");
             return resultvalue;
@@ -100,9 +114,7 @@ namespace CurrencyExchangeService.Controllers
             var cacheKey = "symbolList";
             //checks if cache entries exists
             if (!_memoryCache.TryGetValue(cacheKey, out Symbols symbolList))
-            {   //calling the server
-                //******************************************************
-                //var employeeList = new Symbols();
+            {   //Get data from server                                
                 string requestUrl = $"{Constants.BaseUrl}symbols";
                 UriBuilder builder = new UriBuilder(requestUrl);
                 builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}";
@@ -112,14 +124,12 @@ namespace CurrencyExchangeService.Controllers
                 var response = _httpClient.Send(httpRequestMessage);
                 var resultstr = response.Content.ReadAsStringAsync().Result;
                 var resultobject = JsonConvert.DeserializeObject<SymbolResponse>(resultstr);
-
                
                 if (resultobject != null)
                 {
                     symbolList = resultobject.symbols;
                 }
-                //****************************************************
-
+               
                 //setting up cache options
                 var cacheExpiryOptions = new MemoryCacheEntryOptions
                 {
@@ -133,9 +143,7 @@ namespace CurrencyExchangeService.Controllers
             _logger.LogInformation("GetSymbols execution finished...");
             return symbolList;
         }
-
     }
-
 }
 
 

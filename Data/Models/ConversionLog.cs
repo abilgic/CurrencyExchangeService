@@ -11,7 +11,9 @@ namespace Data.Models
     {
         [Key]
         public int Id { get; set; }
+        [StringLength(3)]
         public string Currency1 { get; set; }
+        [StringLength(3)]
         public string Currency2 { get; set; }
         public double Amount { get; set; }
         public double Result { get; set; }
