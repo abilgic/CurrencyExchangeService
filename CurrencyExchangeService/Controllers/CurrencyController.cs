@@ -83,29 +83,29 @@ namespace CurrencyExchangeService.Controllers
             return resultvalue;
         }
 
-        [HttpGet("GetSymbols")]
-        public Symbols GetSymbols()
-        {
-            _logger.LogInformation("GetSymbols execution started...");
-            string requestUrl = $"{Constants.BaseUrl}symbols";
-            UriBuilder builder = new UriBuilder(requestUrl);
-            builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}";
+        //[HttpGet("GetSymbols")]
+        //public Symbols GetSymbols()
+        //{
+        //    _logger.LogInformation("GetSymbols execution started...");
+        //    string requestUrl = $"{Constants.BaseUrl}symbols";
+        //    UriBuilder builder = new UriBuilder(requestUrl);
+        //    builder.Query = $"apikey={_config.GetValue<string>("ApiValues:ApiKey2")}";
 
-            var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
-            HttpClient _httpClient = new HttpClient();
-            var response = _httpClient.Send(httpRequestMessage);
-            var resultstr = response.Content.ReadAsStringAsync().Result;
-            var resultobject = JsonConvert.DeserializeObject<SymbolResponse>(resultstr);
+        //    var httpRequestMessage = new HttpRequestMessage { Method = HttpMethod.Get, RequestUri = builder.Uri };
+        //    HttpClient _httpClient = new HttpClient();
+        //    var response = _httpClient.Send(httpRequestMessage);
+        //    var resultstr = response.Content.ReadAsStringAsync().Result;
+        //    var resultobject = JsonConvert.DeserializeObject<SymbolResponse>(resultstr);
             
-           var resultvalue = new Symbols();
-            if (resultobject != null)
-            {
-                resultvalue =  resultobject.symbols;
-            }
-            _logger.LogInformation("GetSymbols execution finished...");
+        //   var resultvalue = new Symbols();
+        //    if (resultobject != null)
+        //    {
+        //        resultvalue =  resultobject.symbols;
+        //    }
+        //    _logger.LogInformation("GetSymbols execution finished...");
 
-            return resultvalue ?? new Symbols();
-        }
+        //    return resultvalue ?? new Symbols();
+        //}
 
         [HttpGet("GetSymbolList")]
         public Symbols GetSymbolList()
